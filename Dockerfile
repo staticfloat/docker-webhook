@@ -10,13 +10,12 @@ RUN mkdir -p /app/hooks/
 
 WORKDIR /app
 
-# Copy in webhook listener and the entrypoint
-COPY webhook_listener.py ./webhook_listener.py
-
 # Install requirements
 COPY requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt && \
     rm -f requirements.txt
 
+# Copy in webhook listener script
+COPY webhook_listener.py ./webhook_listener.py
 CMD ["python", "webhook_listener.py"]
 EXPOSE 8000

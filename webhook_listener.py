@@ -4,7 +4,7 @@ from ipaddress import ip_address, ip_network
 from json import dumps
 from os import X_OK, access, getenv, listdir
 from subprocess import PIPE, Popen
-from sys import stderr
+from sys import stderr, exit
 
 import requests
 from flask import Flask, abort, request
@@ -18,13 +18,15 @@ github_whitelist = requests.get('https://api.github.com/meta').json()['hooks']
 # Collect all scripts now; we don't need to search every time
 scripts = [f for f in listdir("/app/hooks") if access(f, X_OK)]
 if not scripts:
-    raise ValueError("No executable hook scripts found; did you forget to"
-                     " mount something into /app/hooks or chmod +x them?")
+    logging.error("No executable hook scripts found; did you forget to"
+                  " mount something into /app/hooks or chmod +x them?")
+    exit(1)
 
 # Get application secret
 webhook_secret = getenv('WEBHOOK_SECRET')
 if webhook_secret is None:
-    raise ValueError("Must define WEBHOOK_SECRET")
+    logging.error("Must define WEBHOOK_SECRET")
+    exit(1)
 
 # Get branch list that we'll listen to, defaulting to just 'master'
 branch_whitelist = getenv('WEBHOOK_BRANCH_LIST', '').split(',')
