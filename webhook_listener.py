@@ -81,6 +81,8 @@ def index():
     for script in scripts:
         proc = Popen([script, branch], stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
+        stdout = stdout.decode('utf-8')
+        stderr = stderr.decode('utf-8')
 
         # Log errors if a hook failed
         if proc.returncode != 0:
