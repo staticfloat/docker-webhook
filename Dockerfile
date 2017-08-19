@@ -1,5 +1,10 @@
 FROM python:3
 
+# Install docker
+RUN cd /usr/bin; \
+    curl -L 'https://download.docker.com/linux/static/stable/x86_64/docker-17.06.1-ce.tgz' | tar --strip-components=1 -zxv; \
+    pip install docker-compose
+
 # Create /app/ and /app/hooks/
 RUN mkdir -p /app/hooks/
 

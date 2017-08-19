@@ -65,6 +65,10 @@ def index():
     if event == "ping":
         return dumps({"msg": "pong"})
 
+    # Don't listen to anything but push
+    if event != "push":
+        abort(403)
+
     # Try to parse out the branch from the request payload
     try:
         branch = request.get_json()["ref"].split("/", 2)[2]
