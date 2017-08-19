@@ -1,19 +1,14 @@
 import hmac
 import logging
-from ipaddress import ip_address, ip_network
 from json import dumps
 from os import X_OK, access, getenv, listdir
 from os.path import join
 from subprocess import PIPE, Popen
 from sys import stderr, exit
 
-import requests
 from flask import Flask, abort, request
 
 logging.basicConfig(stream=stderr, level=logging.INFO)
-
-# Get github IP whitelist
-github_whitelist = requests.get('https://api.github.com/meta').json()['hooks']
 
 # Collect all scripts now; we don't need to search every time
 # Allow the user to override where the hooks are stored
@@ -46,17 +41,8 @@ last_stderr = ''
 
 @application.route('/', methods=['POST'])
 def index():
-    global github_whitelist, webhook_secret, branch_whitelist, scripts
+    global webhook_secret, branch_whitelist, scripts
     global last_stdout, last_stderr
-
-    # Get source ip of incoming webhook
-    src_ip = ip_address(str(request.remote_addr))
-
-    # If the source ip does not belong to any of the ips in the
-    # github whitelist, quit out
-    if not any(src_ip in ip_network(ip) for ip in github_whitelist):
-        logging.info("IP address not in whitelist, aborting")
-        abort(403)
 
     # Get signature from the webhook request
     header_signature = request.headers.get('X-Hub-Signature')
