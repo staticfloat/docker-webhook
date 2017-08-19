@@ -35,14 +35,12 @@ if not branch_whitelist:
 application = Flask(__name__)
 
 # Keep the logs of the last execution around
-last_stdout = ''
-last_stderr = ''
+responses = {}
 
 
 @application.route('/', methods=['POST'])
 def index():
-    global webhook_secret, branch_whitelist, scripts
-    global last_stdout, last_stderr
+    global webhook_secret, branch_whitelist, scripts, responses
 
     # Get signature from the webhook request
     header_signature = request.headers.get('X-Hub-Signature')
@@ -78,19 +76,26 @@ def index():
                      branch, branch_whitelist)
         abort(403)
     
-    # Run scripts
-    for s in scripts:
-        proc = Popen([s, branch], stdout=PIPE, stderr=PIPE)
-        last_stdout, last_stderr = proc.communicate()
+    # Run scripts, saving into responses (which we clear out)
+    responses = {}
+    for script in scripts:
+        proc = Popen([script, branch], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
 
         # Log errors if a hook failed
         if proc.returncode != 0:
-            logging.error('[%s]: %d\n%s', s, proc.returncode, last_stderr)
+            logging.error('[%s]: %d\n%s', script, proc.returncode, stderr)
+        
+        responses[script] = {
+            'stdout': stdout,
+            'stderr': stderr
+        }
 
+    return dumps(responses)
 
 @application.route('/logs', methods=['GET'])
 def logs():
-    return 'stdout:\n\n' + last_stdout + '\n\nstderr:\n\n' + last_stderr
+    return dumps(responses)
 
 
 # Run the application if we're run as a script
