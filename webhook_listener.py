@@ -16,10 +16,12 @@ logging.basicConfig(stream=stderr)
 github_whitelist = requests.get('https://api.github.com/meta').json()['hooks']
 
 # Collect all scripts now; we don't need to search every time
-scripts = [f for f in listdir("/app/hooks") if access(f, X_OK)]
+# Allow the user to override where the hooks are stored
+HOOKS_DIR = getenv("WEBHOOK_HOOKS_DIR", "/app/hooks")
+scripts = [f for f in listdir(HOOKS_DIR) if access(f, X_OK)]
 if not scripts:
     logging.error("No executable hook scripts found; did you forget to"
-                  " mount something into /app/hooks or chmod +x them?")
+                  " mount something into %s or chmod +x them?", HOOKS_DIR)
     exit(1)
 
 # Get application secret
