@@ -108,4 +108,5 @@ def logs():
 
 # Run the application if we're run as a script
 if __name__ == '__main__':
+    logging.info("All systems operational, beginning application loop")
     application.run(debug=True, host='0.0.0.0', port=8000)
