@@ -3,6 +3,7 @@ import logging
 from ipaddress import ip_address, ip_network
 from json import dumps
 from os import X_OK, access, getenv, listdir
+from os.path import join
 from subprocess import PIPE, Popen
 from sys import stderr, exit
 
@@ -18,7 +19,8 @@ github_whitelist = requests.get('https://api.github.com/meta').json()['hooks']
 # Collect all scripts now; we don't need to search every time
 # Allow the user to override where the hooks are stored
 HOOKS_DIR = getenv("WEBHOOK_HOOKS_DIR", "/app/hooks")
-scripts = [f for f in listdir(HOOKS_DIR) if access(f, X_OK)]
+scripts = [join(HOOKS_DIR, f) for f in listdir(HOOKS_DIR)]
+scripts = [f for f in scripts if access(f, X_OK)]
 if not scripts:
     logging.error("No executable hook scripts found; did you forget to"
                   " mount something into %s or chmod +x them?", HOOKS_DIR)
