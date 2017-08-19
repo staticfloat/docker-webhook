@@ -10,8 +10,7 @@ from sys import stderr, exit
 import requests
 from flask import Flask, abort, request
 
-logging.basicConfig(stream=stderr)
-
+logging.basicConfig(stream=stderr, level=logging.INFO)
 
 # Get github IP whitelist
 github_whitelist = requests.get('https://api.github.com/meta').json()['hooks']
