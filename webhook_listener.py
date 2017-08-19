@@ -34,10 +34,15 @@ if not branch_whitelist:
 # Our Flask application
 application = Flask(__name__)
 
+# Keep the logs of the last execution around
+last_stdout = ''
+last_stderr = ''
+
 
 @application.route('/', methods=['POST'])
 def index():
     global github_whitelist, webhook_secret, branch_whitelist, scripts
+    global last_stdout, last_stderr
 
     # Get source ip of incoming webhook
     src_ip = ip_address(str(request.remote_addr))
@@ -85,11 +90,16 @@ def index():
     # Run scripts
     for s in scripts:
         proc = Popen([s, branch], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
+        last_stdout, last_stderr = proc.communicate()
 
         # Log errors if a hook failed
         if proc.returncode != 0:
-            logging.error('[%s]: %d\n%s', s, proc.returncode, stderr)
+            logging.error('[%s]: %d\n%s', s, proc.returncode, last_stderr)
+
+
+@application.route('/logs', methods=['GET'])
+def logs():
+    return 'stdout:\n\n' + last_stdout + '\n\nstderr:\n\n' + last_stderr
 
 
 # Run the application if we're run as a script
