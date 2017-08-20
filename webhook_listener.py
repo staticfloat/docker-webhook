@@ -53,6 +53,7 @@ def index():
     mac = hmac.new(webhook_secret.encode('utf8'), msg=request.data, digestmod=sha_name)
     if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
         logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
+        logging.info("request data: " + request.data.decode('utf8'))
         abort(403)
     
     # Respond to ping properly
