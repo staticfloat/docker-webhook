@@ -68,7 +68,8 @@ def index():
 
     # Try to parse out the branch from the request payload
     try:
-        branch = request.get_json()["ref"].split("/", 2)[2]
+        json = loads(request.get_data().decode('utf8'))
+        branch = json["ref"].split("/", 2)[2]
     except:
         logging.info("Parsing payload failed")
         abort(400)
