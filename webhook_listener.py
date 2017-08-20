@@ -50,10 +50,10 @@ def index():
 
     # Construct an hmac, abort if it doesn't match
     sha_name, signature = header_signature.split('=')
-    mac = hmac.new(webhook_secret.encode('utf8'), msg=request.data, digestmod=sha_name)
+    mac = hmac.new(webhook_secret.encode('utf8'), msg=request.get_data(), digestmod=sha_name)
     if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
         logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
-        logging.info("request data: " + request.data.decode('utf8'))
+        logging.info("request data: " + request.get_data().decode('utf8'))
         abort(403)
     
     # Respond to ping properly
