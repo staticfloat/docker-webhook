@@ -1,6 +1,6 @@
 import hmac
 import logging
-from json import dumps
+from json import dumps, loads
 from os import X_OK, access, getenv, listdir
 from os.path import join
 from subprocess import PIPE, Popen
