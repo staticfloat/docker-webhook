@@ -1,6 +1,6 @@
 import hmac
 import logging
-from json import dumps, loads
+from json import dumps
 from os import X_OK, access, getenv, listdir
 from os.path import join
 from subprocess import PIPE, Popen
@@ -28,9 +28,7 @@ if webhook_secret is None:
     exit(1)
 
 # Get branch list that we'll listen to, defaulting to just 'master'
-branch_whitelist = getenv('WEBHOOK_BRANCH_LIST', '').split(',')
-if not branch_whitelist:
-    branch_whitelist = ['master']
+branch_whitelist = getenv('WEBHOOK_BRANCH_LIST', 'master').split(',')
 
 # Our Flask application
 application = Flask(__name__)
@@ -55,7 +53,6 @@ def index():
     mac = hmac.new(webhook_secret.encode('utf8'), msg=data, digestmod=sha_name)
     if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
         logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
-        logging.info("request data: " + data.decode('utf8'))
         abort(403)
     
     # Respond to ping properly
@@ -70,8 +67,7 @@ def index():
 
     # Try to parse out the branch from the request payload
     try:
-        json = loads(data.decode('utf8'))
-        branch = json["ref"].split("/", 2)[2]
+        branch = request.get_json(force=True)["ref"].split("/", 2)[2]
     except:
         print_exc()
         logging.info("Parsing payload failed")
