@@ -72,7 +72,7 @@ def index():
         json = loads(request.get_data().decode('utf8'))
         branch = json["ref"].split("/", 2)[2]
     except:
-        traceback.print_exc()
+        print_exc()
         logging.info("Parsing payload failed")
         abort(400)
 
