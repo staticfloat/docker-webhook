@@ -5,6 +5,7 @@ from os import X_OK, access, getenv, listdir
 from os.path import join
 from subprocess import PIPE, Popen
 from sys import stderr, exit
+from traceback import print_exc
 
 from flask import Flask, abort, request
 
@@ -71,6 +72,7 @@ def index():
         json = loads(request.get_data().decode('utf8'))
         branch = json["ref"].split("/", 2)[2]
     except:
+        traceback.print_exc()
         logging.info("Parsing payload failed")
         abort(400)
 
