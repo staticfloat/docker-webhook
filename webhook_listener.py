@@ -51,10 +51,11 @@ def index():
 
     # Construct an hmac, abort if it doesn't match
     sha_name, signature = header_signature.split('=')
-    mac = hmac.new(webhook_secret.encode('utf8'), msg=request.get_data(), digestmod=sha_name)
+    data = request.get_data()
+    mac = hmac.new(webhook_secret.encode('utf8'), msg=data, digestmod=sha_name)
     if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
         logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
-        logging.info("request data: " + request.get_data().decode('utf8'))
+        logging.info("request data: " + data.decode('utf8'))
         abort(403)
     
     # Respond to ping properly
@@ -69,7 +70,7 @@ def index():
 
     # Try to parse out the branch from the request payload
     try:
-        json = loads(request.get_data().decode('utf8'))
+        json = loads(data.decode('utf8'))
         branch = json["ref"].split("/", 2)[2]
     except:
         print_exc()
