@@ -4,7 +4,7 @@ Simple python application to listen for GitHub webhook events and run scripts in
 
 Let us imagine I have an application running with an nginx frontend and some kind of backend.  I want this application to redeploy itself when it receives a `push` event from GitHub on either the branch `master` or `release-1.0`.  To do so, I would first add configuration to the application's `docker-compose.yml` file similar to the following:
 
-```
+```yaml
 version: '2.1'
 services:
     frontend:
@@ -27,7 +27,8 @@ services:
             - 8000
 ```
 
-This creates a `webhook` service that will listen for incoming webhook events on (docker-internal) port 8000.  Note that I have left the `WEBHOOK_SECRET` as a variable even in the `docker-compose.yml`.  This is because I have found it handy to encrypt these values in a separate `.env` file with [`git-crypt`](https://github.com/AGWA/git-crypt).  
+This creates a `webhook` service that will listen for incoming webhook events on (docker-internal) port 8000.  Note that I have left the `WEBHOOK_SECRET` as a variable even in the `docker-compose.yml`.  This is because I have found it handy to encrypt these values in a separate `.env` file with [`git-crypt`](https://github.com/AGWA/git-crypt).
+You're able to use `webhook_secret` [Docker secret](https://docs.docker.com/compose/compose-file/#secrets) instead of environment variable to provide this value.
 
 To route webhook events to the `webhook` image, I will add this snippet to my frontend `nginx` config:
 

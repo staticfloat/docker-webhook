@@ -3,11 +3,39 @@ import logging
 from json import dumps
 from os import X_OK, access, getenv, listdir
 from os.path import join
+from pathlib import Path
 from subprocess import PIPE, Popen
 from sys import stderr, exit
 from traceback import print_exc
 
 from flask import Flask, abort, request
+
+
+def get_secret(name):
+    """Tries to read Docker secret or corresponding environment variable.
+
+    Returns:
+        secret (str): Secret value.
+
+    """
+    secret_path = Path('/run/secrets/') / name
+
+    try:
+        with open(secret_path, 'r') as file_descriptor:
+            # Several text editors add trailing newline which may cause troubles.
+            # That's why we're trimming secrets' spaces here.
+            return file_descriptor.read() \
+                    .strip()
+    except OSError as err:
+        variable_name = name.upper()
+        logging.debug(
+            'Can\'t obtain secret %s via %s path. Will use %s environment variable.',
+            name,
+            secret_path,
+            variable_name
+        )
+        return getenv(variable_name)
+
 
 logging.basicConfig(stream=stderr, level=logging.INFO)
 
@@ -22,7 +50,7 @@ if not scripts:
     exit(1)
 
 # Get application secret
-webhook_secret = getenv('WEBHOOK_SECRET')
+webhook_secret = get_secret('webhook_secret')
 if webhook_secret is None:
     logging.error("Must define WEBHOOK_SECRET")
     exit(1)
