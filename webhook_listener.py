@@ -76,9 +76,17 @@ def index():
         abort(403)
 
     # Construct an hmac, abort if it doesn't match
-    sha_name, signature = header_signature.split('=')
+    try:
+        sha_name, signature = header_signature.split('=')
+    except:
+        logging.info("X-Hub-Signature format is incorrect (%s), aborting", header_signature)
+        abort(400)
     data = request.get_data()
-    mac = hmac.new(webhook_secret.encode('utf8'), msg=data, digestmod=sha_name)
+    try:
+        mac = hmac.new(webhook_secret.encode('utf8'), msg=data, digestmod=sha_name)
+    except:
+        logging.info("Unsupported X-Hub-Signature type (%s), aborting", header_signature)
+        abort(400)
     if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
         logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
         abort(403)
