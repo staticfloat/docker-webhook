@@ -1,0 +1,10 @@
+language: c
+services:
+  - docker
+
+before_install:
+  - docker pull python:3
+  - docker pull docker
+
+script:
+  - make check
