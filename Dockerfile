@@ -1,9 +1,8 @@
-FROM python:3
+FROM docker:stable
 
-# Install docker
-RUN cd /usr/bin; \
-    curl -L 'https://download.docker.com/linux/static/stable/x86_64/docker-17.06.1-ce.tgz' | tar --strip-components=1 -zxv; \
-    pip install docker-compose
+RUN apk add --no-cache python3 openssl-dev libffi-dev make git build-base python3-dev bash && \
+    pip3 install docker-compose && \
+    apk del build-base python3-dev libffi-dev openssl-dev
 
 # Create /app/ and /app/hooks/
 RUN mkdir -p /app/hooks/
@@ -12,10 +11,10 @@ WORKDIR /app
 
 # Install requirements
 COPY requirements.txt ./requirements.txt
-RUN pip install -r requirements.txt && \
+RUN pip3 install -r requirements.txt && \
     rm -f requirements.txt
 
 # Copy in webhook listener script
 COPY webhook_listener.py ./webhook_listener.py
-CMD ["python", "webhook_listener.py"]
+CMD ["python3", "webhook_listener.py"]
 EXPOSE 8000
