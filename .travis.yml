@@ -2,6 +2,9 @@ language: c
 services:
   - docker
 
+notifications:
+  email: false
+
 before_install:
   - docker pull python:3
   - docker pull docker
