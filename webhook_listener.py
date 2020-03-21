@@ -71,33 +71,39 @@ def index():
 
     # Get signature from the webhook request
     header_signature = request.headers.get('X-Hub-Signature')
-    if header_signature is None:
+    header_gitlab_token = request.headers.get('X-Gitlab-Token')
+    if header_signature is not None:
+        # Construct an hmac, abort if it doesn't match
+        try:
+            sha_name, signature = header_signature.split('=')
+        except:
+            logging.info("X-Hub-Signature format is incorrect (%s), aborting", header_signature)
+            abort(400)
+        data = request.get_data()
+        try:
+            mac = hmac.new(webhook_secret.encode('utf8'), msg=data, digestmod=sha_name)
+        except:
+            logging.info("Unsupported X-Hub-Signature type (%s), aborting", header_signature)
+            abort(400)
+        if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
+            logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
+            abort(403)
+    elif header_gitlab_token is not None:
+        if webhook_secret != header_gitlab_token:
+            logging.info("Gitlab Secret Token did not match, aborting")
+            abort(403)
+    else:
         logging.info("X-Hub-Signature was missing, aborting")
         abort(403)
 
-    # Construct an hmac, abort if it doesn't match
-    try:
-        sha_name, signature = header_signature.split('=')
-    except:
-        logging.info("X-Hub-Signature format is incorrect (%s), aborting", header_signature)
-        abort(400)
-    data = request.get_data()
-    try:
-        mac = hmac.new(webhook_secret.encode('utf8'), msg=data, digestmod=sha_name)
-    except:
-        logging.info("Unsupported X-Hub-Signature type (%s), aborting", header_signature)
-        abort(400)
-    if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
-        logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
-        abort(403)
-    
+    event = request.headers.get("X-Gitlab-Event", "ping")
+    event = request.headers.get("X-GitHub-Event", event)
     # Respond to ping properly
-    event = request.headers.get("X-GitHub-Event", "ping")
     if event == "ping":
         return dumps({"msg": "pong"})
 
     # Don't listen to anything but push
-    if event != "push":
+    if event != "push" and event != "Push Hook":
         logging.info("Not a push event, aborting")
         abort(403)
 
