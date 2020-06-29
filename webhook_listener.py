@@ -42,7 +42,7 @@ logging.basicConfig(stream=stderr, level=logging.INFO)
 # Collect all scripts now; we don't need to search every time
 # Allow the user to override where the hooks are stored
 HOOKS_DIR = getenv("WEBHOOK_HOOKS_DIR", "/app/hooks")
-scripts = [join(HOOKS_DIR, f) for f in listdir(HOOKS_DIR)]
+scripts = [join(HOOKS_DIR, f) for f in sorted(listdir(HOOKS_DIR))]
 scripts = [f for f in scripts if access(f, X_OK)]
 if not scripts:
     logging.error("No executable hook scripts found; did you forget to"
