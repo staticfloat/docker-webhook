@@ -88,12 +88,12 @@ def index():
         if not hmac.compare_digest(str(mac.hexdigest()), str(signature)):
             logging.info("Signature did not match (%s and %s), aborting", str(mac.hexdigest()), str(signature))
             abort(403)
-        event = request.headers.get("X-Gitlab-Event", "ping")
+        event = request.headers.get("X-GitHub-Event", "ping")
     elif header_gitlab_token is not None:
         if webhook_secret != header_gitlab_token:
             logging.info("Gitlab Secret Token did not match, aborting")
             abort(403)
-        event = request.headers.get("X-GitHub-Event", "unknown")
+        event = request.headers.get("X-Gitlab-Event", "unknown")
     else:
         logging.info("X-Hub-Signature was missing, aborting")
         abort(403)
